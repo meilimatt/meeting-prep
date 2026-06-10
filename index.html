@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meeting Prep</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f5f4;
+      color: #1c1917;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e7e5e4;
+      padding: 0 24px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+
+    .settings-btn {
+      background: none;
+      border: 1px solid #d6d3d1;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 13px;
+      color: #57534e;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .settings-btn:hover { background: #f5f5f4; }
+
+    .main {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    .input-card {
+      background: #fff;
+      border: 1px solid #e7e5e4;
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .input-card h2 {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #78716c;
+      margin-bottom: 18px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #57534e;
+    }
+
+    input, textarea, select {
+      border: 1px solid #d6d3d1;
+      border-radius: 7px;
+      padding: 9px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1c1917;
+      background: #fff;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+
+    select { cursor: pointer; }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #a78bfa;
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.5;
+    }
+
+    .generate-btn {
+      width: 100%;
+      background: #7c3aed;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 11px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .generate-btn:hover:not(:disabled) { background: #6d28d9; }
+    .generate-btn:disabled { background: #a78bfa; cursor: not-allowed; }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .generating .spinner { display: block; }
+    .generating .btn-label::before { content: 'Generating…'; }
+    .btn-label::before { content: 'Generate Brief'; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Brief output */
+    .brief {
+      display: none;
+      background: #fff;
+      border: 1px solid #e7e5e4;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .brief.visible { display: block; }
+
+    .brief-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f5f5f4;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .brief-header-text h3 {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brief-header-text p {
+      font-size: 13px;
+      color: #78716c;
+      margin-top: 2px;
+    }
+
+    .copy-btn {
+      background: none;
+      border: 1px solid #d6d3d1;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: #57534e;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .copy-btn:hover { background: #f5f5f4; }
+
+    .brief-body {
+      padding: 0 24px 24px;
+    }
+
+    .section {
+      margin-top: 22px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #a8a29e;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #f5f5f4;
+    }
+
+    .section-content {
+      font-size: 14px;
+      line-height: 1.65;
+      color: #1c1917;
+    }
+
+    .section-content ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .section-content ul li {
+      display: flex;
+      gap: 8px;
+    }
+
+    .section-content ul li::before {
+      content: '·';
+      color: #7c3aed;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .talk-track {
+      background: #faf9f8;
+      border: 1px solid #f5f5f4;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #292524;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      width: 420px;
+      max-width: calc(100vw - 32px);
+    }
+
+    .modal h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .modal .field { margin-bottom: 16px; }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .btn-secondary {
+      background: none;
+      border: 1px solid #d6d3d1;
+      border-radius: 7px;
+      padding: 8px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      color: #57534e;
+    }
+    .btn-secondary:hover { background: #f5f5f4; }
+
+    .btn-primary {
+      background: #7c3aed;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: #6d28d9; }
+
+    .error-msg {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #dc2626;
+      margin-top: 16px;
+      display: none;
+    }
+    .error-msg.visible { display: block; }
+
+    .api-hint {
+      font-size: 11px;
+      color: #a8a29e;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Meeting Prep</h1>
+  <button class="settings-btn" onclick="openSettings()">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="8" cy="8" r="2.5"/>
+      <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M3.05 12.95l1.06-1.06M11.89 4.11l1.06-1.06"/>
+    </svg>
+    API Key
+  </button>
+</header>
+
+<div class="main">
+  <div class="input-card">
+    <h2>Deal Context</h2>
+    <div class="field-row">
+      <div class="field">
+        <label for="company">Company</label>
+        <input type="text" id="company" placeholder="Acme Corp" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="contact">Contact Name</label>
+        <input type="text" id="contact" placeholder="Jane Smith" autocomplete="off">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="title">Contact Title</label>
+        <input type="text" id="title" placeholder="VP of Engineering" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="stage">Deal Stage</label>
+        <select id="stage">
+          <option value="">— Select stage —</option>
+          <option value="0. Paused">0. Paused</option>
+          <option value="1. Qualification">1. Qualification</option>
+          <option value="2. Discovery - Demo">2. Discovery - Demo</option>
+          <option value="3. Solution confirmation - PoC">3. Solution confirmation - PoC</option>
+          <option value="4. Proposal">4. Proposal</option>
+          <option value="5. Closed::won">5. Closed Won</option>
+          <option value="5. Closed::lost">5. Closed Lost</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field full">
+        <label for="notes">Deal Notes</label>
+        <textarea id="notes" placeholder="What do you know so far? Current stack, pain points mentioned, inbound vs outbound, budget signals, competitors involved…"></textarea>
+      </div>
+    </div>
+    <button class="generate-btn" id="generateBtn" onclick="generate()">
+      <div class="spinner"></div>
+      <span class="btn-label"></span>
+    </button>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <div class="brief" id="brief">
+    <div class="brief-header">
+      <div class="brief-header-text">
+        <h3 id="briefTitle"></h3>
+        <p id="briefSubtitle"></p>
+      </div>
+      <button class="copy-btn" onclick="copyBrief()">Copy</button>
+    </div>
+    <div class="brief-body" id="briefBody"></div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal" onclick="closeSettingsOutside(event)">
+  <div class="modal">
+    <h3>API Settings</h3>
+    <div class="field">
+      <label for="apiKeyInput">Anthropic API Key</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-…" autocomplete="off">
+      <p class="api-hint">Stored in localStorage. Never sent anywhere except Anthropic's API.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
+      <button class="btn-primary" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Settings ---
+  function openSettings() {
+    const key = localStorage.getItem('anthropic_api_key') || '';
+    document.getElementById('apiKeyInput').value = key;
+    document.getElementById('settingsModal').classList.add('open');
+  }
+
+  function closeSettings() {
+    document.getElementById('settingsModal').classList.remove('open');
+  }
+
+  function closeSettingsOutside(e) {
+    if (e.target === document.getElementById('settingsModal')) closeSettings();
+  }
+
+  function saveSettings() {
+    const key = document.getElementById('apiKeyInput').value.trim();
+    if (key) localStorage.setItem('anthropic_api_key', key);
+    else localStorage.removeItem('anthropic_api_key');
+    closeSettings();
+  }
+
+  // --- Generation ---
+  async function generate() {
+    const apiKey = localStorage.getItem('anthropic_api_key');
+    if (!apiKey) {
+      showError('Add your Anthropic API key first — click "API Key" in the top right.');
+      return;
+    }
+
+    const company = document.getElementById('company').value.trim();
+    const contact = document.getElementById('contact').value.trim();
+    const title = document.getElementById('title').value.trim();
+    const stage = document.getElementById('stage').value.trim();
+    const notes = document.getElementById('notes').value.trim();
+
+    if (!company) {
+      showError('Enter a company name to continue.');
+      return;
+    }
+
+    hideError();
+    setLoading(true);
+
+    const prompt = buildPrompt({ company, contact, title, stage, notes });
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1500,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error?.message || `API error ${res.status}`);
+      }
+
+      const data = await res.json();
+      const text = data.content?.[0]?.text || '';
+      renderBrief({ company, contact, title }, text);
+    } catch (err) {
+      showError(err.message || 'Something went wrong. Check your API key and try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function buildPrompt({ company, contact, title, stage, notes }) {
+    return `You are an expert B2B SaaS sales coach. Produce a concise one-page meeting brief for a sales rep.
+
+Deal details:
+- Company: ${company}
+- Contact: ${contact || 'Unknown'}${title ? ` (${title})` : ''}
+- Stage: ${stage || 'Not specified'}
+- Notes: ${notes || 'None provided'}
+
+Return the brief as JSON with exactly these keys:
+{
+  "company_overview": "1 sentence: what the company does and their scale/industry",
+  "pain_points": ["2-3 likely pain points, each under 10 words"],
+  "discovery_questions": ["3-4 sharp, open-ended discovery questions"],
+  "talk_track": "A 3-4 sentence opening talk track the rep can use to set context, establish credibility, and open up the conversation"
+}
+
+Be specific to this company and contact. No filler. Return only the JSON object, no markdown fencing.`;
+  }
+
+  function renderBrief({ company, contact, title }, raw) {
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      showError('Could not parse the response. Try again.');
+      return;
+    }
+
+    document.getElementById('briefTitle').textContent = company;
+    document.getElementById('briefSubtitle').textContent =
+      [contact, title].filter(Boolean).join(' · ');
+
+    const body = document.getElementById('briefBody');
+    body.innerHTML = '';
+
+    const sections = [
+      {
+        key: 'company_overview',
+        label: 'Company Overview',
+        type: 'prose'
+      },
+      {
+        key: 'pain_points',
+        label: 'Likely Pain Points',
+        type: 'list'
+      },
+      {
+        key: 'discovery_questions',
+        label: 'Discovery Questions',
+        type: 'list'
+      },
+      {
+        key: 'talk_track',
+        label: 'Opening Talk Track',
+        type: 'talk-track'
+      }
+    ];
+
+    sections.forEach(({ key, label, type }) => {
+      const val = data[key];
+      if (!val) return;
+
+      const section = document.createElement('div');
+      section.className = 'section';
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'section-title';
+      titleEl.textContent = label;
+      section.appendChild(titleEl);
+
+      const content = document.createElement('div');
+      content.className = 'section-content';
+
+      if (type === 'list' && Array.isArray(val)) {
+        const ul = document.createElement('ul');
+        val.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          ul.appendChild(li);
+        });
+        content.appendChild(ul);
+      } else if (type === 'talk-track') {
+        const div = document.createElement('div');
+        div.className = 'talk-track';
+        div.textContent = val;
+        content.appendChild(div);
+      } else {
+        content.textContent = val;
+      }
+
+      section.appendChild(content);
+      body.appendChild(section);
+    });
+
+    const brief = document.getElementById('brief');
+    brief.classList.add('visible');
+    brief.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function copyBrief() {
+    const title = document.getElementById('briefTitle').textContent;
+    const subtitle = document.getElementById('briefSubtitle').textContent;
+    const body = document.getElementById('briefBody');
+
+    let text = `${title}${subtitle ? ' — ' + subtitle : ''}\n\n`;
+
+    body.querySelectorAll('.section').forEach(section => {
+      const sectionTitle = section.querySelector('.section-title').textContent;
+      text += `${sectionTitle.toUpperCase()}\n`;
+
+      const ul = section.querySelector('ul');
+      const prose = section.querySelector('.section-content:not(:has(ul)):not(:has(.talk-track))');
+      const tt = section.querySelector('.talk-track');
+
+      if (ul) {
+        ul.querySelectorAll('li').forEach(li => {
+          text += `• ${li.textContent}\n`;
+        });
+      } else if (tt) {
+        text += tt.textContent + '\n';
+      } else if (prose) {
+        text += prose.textContent + '\n';
+      }
+
+      text += '\n';
+    });
+
+    navigator.clipboard.writeText(text.trim()).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  }
+
+  function setLoading(on) {
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = on;
+    btn.classList.toggle('generating', on);
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('visible');
+  }
+
+  function hideError() {
+    document.getElementById('errorMsg').classList.remove('visible');
+  }
+
+  // Prompt settings on first load if no key
+  window.addEventListener('load', () => {
+    if (!localStorage.getItem('anthropic_api_key')) openSettings();
+  });
+
+  // Enter key on inputs triggers generate
+  document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) generate();
+    });
+  });
+</script>
+</body>
+</html>
